@@ -1,11 +1,35 @@
-# Discord-Register-Bot
-Discord Sunucu Kayıt Botu
+# Discord Kayıt Botu
 
-- Bu Bot Geliştirilme Aşamasındadır. Ne Kadar Çok Star Atılırsa O Kadar Zaman Ayırıp Geliştireceğim. Şimdilik 1 Saatte Bu Kadar Yazabildim. Herkese Açık Paylaşıyorum Kodları Sonradan Düzenleyeceğim.
+Bu Discord kayıt botu geliştirme aşamasındadır. Ne kadar çok ilgi ve geri bildirim alırsam, o kadar çok zaman ayırıp geliştireceğim. Şu an için sadece bir saatte bu kadar yazabildim. Kodlar herkese açık olarak paylaşılmış olup, daha sonra düzenlemeler yapılacaktır.
 
-- Kayıt Botu Full Setuplıdır Config Dosyasında Sadece GuildId ile Token Girilecektir.
+**DİKKAT:** Kodlar fazla test edilmemiştir ve hatalar içerebilir. Geliştirme aşamasındadır!
 
-- *DIKKAT* : FAZLA TEST ETMEDIM HATALAR OLABILIR. GELISTIRILME AŞAMASINDADIR!!!
+## Kurulum
+
+1. Bu repoyu klonlayın veya ZIP dosyası olarak indirin.
+2. Gerekli bağımlılıkları yüklemek için `npm install` komutunu çalıştırın.
+3. `config.json` dosyasını düzenleyerek `GuildId` ve `Token` bilgilerinizi girin.
+4. Botu çalıştırmak için `npm start` komutunu kullanın.
+
+## Kullanım
+
+- Botun çalışması için Discord sunucusunda yönetici izinlerine sahip olması gerekmektedir.
+- Botun çalıştığı sunucuda kayıt kanalı oluşturun ve kayıt için gerekli rolleri ayarlayın.
+- Kayıt işlemi için belirlenen komutları kullanın.
+
+## Destek
+
+Herhangi bir sorunla karşılaşırsanız veya önerileriniz varsa lütfen GitHub üzerinden bir [issue](link) açın.
+
+## Katkıda Bulunma
+
+- Fork yaparak veya issue açarak katkıda bulunabilirsiniz.
+- Pull requestlerinizi bekliyorum!
+
+## Lisans
+
+Bu proje [MIT Lisansı](link) ile lisanslanmıştır.
+
 
 
 ![Screenshot_6](https://github.com/mysteriouss3/Discord-Register-Bot/assets/142053394/edac214f-b855-4a9c-9829-7dea32b944d9)
