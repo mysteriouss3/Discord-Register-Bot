@@ -5,6 +5,8 @@ Discord Sunucu Kayıt Botu
 
 - Kayıt Botu Full Setuplıdır Config Dosyasında Sadece GuildId ile Token Girilecektir.
 
+-DIKKAT FAZLA TEST ETMEDIM HATALAR OLABILIR. GELISTIRILME AŞAMASINDADIR!!!
+
 
 ![Screenshot_6](https://github.com/mysteriouss3/Discord-Register-Bot/assets/142053394/edac214f-b855-4a9c-9829-7dea32b944d9)
 ![Screenshot_8](https://github.com/mysteriouss3/Discord-Register-Bot/assets/142053394/c2cdb660-a2d4-4007-a2d9-8fdc2f0f87ad)
