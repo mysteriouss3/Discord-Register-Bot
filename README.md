@@ -8,7 +8,7 @@ Bu Discord kayıt botu geliştirme aşamasındadır. Ne kadar çok ilgi ve geri 
 
 1. Bu repoyu klonlayın veya ZIP dosyası olarak indirin.
 2. Gerekli bağımlılıkları yüklemek için `npm install` komutunu çalıştırın.
-3. `config.json` dosyasını düzenleyerek `GuildId` ve `Token` bilgilerinizi girin.
+3. `Global/Settings/Systems.js` dosyasını düzenleyerek `GuildId` ve `Token` bilgilerinizi girin.
 4. Botu çalıştırmak için `npm start` komutunu kullanın.
 
 ## Kullanım
