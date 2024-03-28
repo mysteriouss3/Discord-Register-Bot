@@ -19,17 +19,11 @@ Bu Discord kayıt botu geliştirme aşamasındadır. Ne kadar çok ilgi ve geri 
 
 ## Destek
 
-Herhangi bir sorunla karşılaşırsanız veya önerileriniz varsa lütfen GitHub üzerinden bir [issue](link) açın.
+Herhangi bir sorunla karşılaşırsanız veya önerileriniz varsa discord : mys_terious3 buradan ulaşabilirsiniz.
 
 ## Katkıda Bulunma
 
-- Fork yaparak veya issue açarak katkıda bulunabilirsiniz.
-- Pull requestlerinizi bekliyorum!
-
-## Lisans
-
-Bu proje [MIT Lisansı](link) ile lisanslanmıştır.
-
+- Fork yaparak veya star atarak katkıda bulunabilirsiniz.
 
 
 ![Screenshot_6](https://github.com/mysteriouss3/Discord-Register-Bot/assets/142053394/edac214f-b855-4a9c-9829-7dea32b944d9)
