@@ -33,18 +33,21 @@ module.exports = {
     */
 
     onRequest: async function (client, message) {
-        const casRegister = function (category) {
+
+        const casRegister = async function () {
             return new StringSelectMenuBuilder()
                 .setCustomId(`settings`)
-                .setPlaceholder(`Değişilecek ${category} ayarı seçiniz!`)
-                .addOptions(Object.values(SETTINGS).flatMap(setting => setting.map((s) => ({
-                    label: s.name,
-                    description: s.description,
-                    value: s.value,
-                    emoji: s.emoji
-                }))))
+                .setPlaceholder(`Değişilecek ayarı seçiniz!`)
+                .addOptions((await SETTINGS.register(message)).map(x => {
+                    return {
+                        label: x.name,
+                        value: x.value,
+                        description: x.description,
+                        emoji: x.emoji
+                    }
+                }))
         }
-        const cas = new ActionRowBuilder().addComponents(casRegister("register"))
+        const cas = new ActionRowBuilder().addComponents((await casRegister()))
         const rowThree = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
@@ -70,7 +73,8 @@ module.exports = {
             }
             console.log(i.customId)
             if (i.customId === 'settings') {
-                option = Object.values(SETTINGS).flatMap(setting => setting.find((o) => o.value === i.values[0]))
+                option = (await SETTINGS.register(message)).filter((o) => o.value === i.values[0])
+
                 if (!option) return i.reply({ content: "Bir hata oluştu.", ephemeral: true });
                 if (option[0].type === 'boolean') {
                     return i.update({

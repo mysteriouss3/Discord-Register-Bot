@@ -1,12 +1,16 @@
-module.exports = {
-    register: [
+
+const { SetupModel } = require('../../Global/DataBase/Models/GuildModel');
+
+async function register(message){
+    var Setup = await SetupModel.findOne({ guildID:message.guild.id });
+    const register = [
         {
             name: 'Register Yetkilisi',
             value: 'registerAuth',
             description: 'Kayıt yetkilisini ayarlarsınız.',
             type: 'role',
             isMultiple: true,
-            emoji: '👮',
+            emoji: Setup.registerAuth ? '👮' : '❌',
         },
         {
             name: 'Register Kanalı',
@@ -15,7 +19,7 @@ module.exports = {
             type: 'channel',
             isParent: false,
             isVoice: false,
-            emoji: '📝',
+            emoji: Setup.registerChannel ? '📝' : '❌',
         },
         {
             name: 'Transfer Kanalı',
@@ -24,7 +28,7 @@ module.exports = {
             type: 'channel',
             isParent: false,
             isVoice: true,
-            emoji: '📝',
+            emoji: Setup.transferChannel ? '📝' : '❌',
         },
         {
             name: 'Tag/Taglar',
@@ -33,7 +37,7 @@ module.exports = {
             type: 'string',
             isMultiple: false,
             isNumber: false,
-            emoji: '🏷️',
+            emoji: Setup.tags ? '🏷️' : '❌',
         },
         {
             name: 'Erkek Rolleri',
@@ -41,7 +45,7 @@ module.exports = {
             description: 'Erkek rollerini belirtirsiniz.',
             type: 'role',
             isMultiple: true,
-            emoji: '👨',
+            emoji: Setup.manRoles ? '👨' : '❌',
         },
         {
             name: 'Kadın Rolleri',
@@ -49,7 +53,7 @@ module.exports = {
             description: 'Kadın rollerini belirtirsiniz.',
             type: 'role',
             isMultiple: true,
-            emoji: '👩',
+            emoji: Setup.womanRoles ? '👩' : '❌',
         },
         {
             name: 'Kayıtsız Rolleri',
@@ -57,7 +61,7 @@ module.exports = {
             description: 'Kayıtsız rolü ve sunucuya giren kullanıcılara verilecek rol.',
             type: 'role',
             isMultiple: true,
-            emoji: '👤',
+            emoji: Setup.unregisterRoles ? '👤' : '❌',
         },
         {
             name: 'Genel Kayıt Rolü',
@@ -65,7 +69,7 @@ module.exports = {
             description: 'Kayıt edilince herkese verilen rol.',
             type: 'role',
             isMultiple: false,
-            emoji: '👥',
+            emoji: Setup.registeredRole ? '👥' : '❌',
         },
         {
             name: 'Şüpheli Rolü',
@@ -73,7 +77,7 @@ module.exports = {
             description: 'Şüpheli rolünü belirtirsiniz.',
             type: 'role',
             isMultiple: false,
-            emoji: '🤔',
+            emoji: Setup.suspectedRole ? '🤔' : '❌' ,
         },
         {
             name: 'Yasaklı Tag Rolü',
@@ -81,7 +85,7 @@ module.exports = {
             description: 'Yasaklı Tag rolünü belirtirsiniz.',
             type: 'role',
             isMultiple: false,
-            emoji: '🚫',
+            emoji: Setup.bannedTagRole ? '🚫' : '❌',
         },
         {
             name: 'Register Kategorisi',
@@ -90,7 +94,7 @@ module.exports = {
             type: 'channel',
             isParent: true,
             isVoice: false,
-            emoji: '📝',
+            emoji: Setup.registerParent ? '📝' : '❌',
         },
         {
             name: 'Taglı Rolü',
@@ -98,7 +102,7 @@ module.exports = {
             description: 'Sunucu taglı rolünü ayarlarsınız.',
             type: 'role',
             isMultiple: false,
-            emoji: '👪',
+            emoji: Setup.familyRole ? '👪' : '❌',
         },
         {
             name: 'Kayıtsız Limiti',
@@ -106,35 +110,28 @@ module.exports = {
             description: 'Yetkililerin belirttiğiniz süre içinde atabileceği kayıtsız miktarı.',
             limitler:["1","5","8","10","12","15","20","25","30"],
             type: 'limit',
-            emoji: '👤',
+            emoji: Setup.unregistered ? '👤' : '❌' ,
         },
         {
             name: 'Taglı Alım Modu',
             value: 'taggedMode',
             description: 'Taglı alım modunu ayarlarsınız.',
             type: 'boolean',
-            emoji: '👪',
+            emoji: Setup.taggedMode ? '👪' : '❌' ,
         },
         {
             name: 'İsim Yaş Sistemli Kayıt',
             value: 'nameAgeSystem',
             description: 'Kapatırsanız Kayıt edilince kullanıcıya sadece genel kayıt rolü verir.',
             type: 'boolean',
-            emoji: '👤',
+            emoji: Setup.nameAgeSystem ? '👤' : '❌',
         },
         {
             name: 'Kayıt Sistemi Yaş Zorunluluğu',
             value: 'needAge',
             description: 'Sunucu kayıt için yaş zorunluluğu.(Sadece isim ile kayıt olur)',
             type: 'boolean',
-            emoji: '👤',
-        },
-        {
-            name: 'İsim Değiştirme Sistemi',
-            value: 'changeName',
-            description: 'Kayıt edilince kullanıcının isminin değiştirilmesi.',
-            type: 'boolean',
-            emoji: '👤',
+            emoji: Setup.needAge ? '👤' : '❌',
         },
         { name: 'Oto Kayıt Sistemi', value: 'autoRegister', description: 'Önceden kayıtlıysa kayıt edilir.', type: 'boolean', emoji: '👤' },
         {
@@ -142,8 +139,10 @@ module.exports = {
             value: 'registerSystem',
             description: 'Register sistemini açar kapatırsınız.',
             type: 'boolean',
-            emoji: '📝',
+            emoji: Setup.registerSystem ? '📝' : '❌' ,
         },
         
-    ],
+    ]
+    return register;
 }
+module.exports = { register }

@@ -1,328 +1,197 @@
-const { ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, codeBlock } = require("discord.js")
-const { RegisterModel } = require("../../../../Global/DataBase/Models/Register");
-const { SetupModel } = require("../../../../Global/DataBase/Models/GuildModel")
+const { Events, EmbedBuilder, ChannelType, Colors } = require("discord.js");
+const { SetupModel } = require('../../../Global/DataBase/Models/GuildModel')
+const { RegisterModel } = require('../../../Global/DataBase/Models/Register')
+
 const axios = require('axios');
+/**
+ * @param {Message} message 
+ * @param {Client} client
+ */
+module.exports = async (interaction) => {
+    const embed = new EmbedBuilder()
+        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL({ size: 128, extension: 'png' }) })
+        .setFooter({ text: "By mysterious3" })
+        .setColor('Random')
 
-module.exports = {
-    Isim: "kayıt",
-    Komut: ["k"],
-    Kullanim: "",
-    Kategori: "",
-    Aciklama: "",
-    Active: true,
-    Cooldown: 3500,
-    Config: {
-        Permissions: [],
-        Mode: false
-    },
+    if (interaction.isButton()) {
+        const KayıtShema = await SetupModel.findOne({ guildID: interaction.guild.id });
 
-    /**
-    * @param {Client} client 
-    */
-    onLoad: function (client) {
-
-    },
-
-    /**
-    * @param {Client} client 
-    * @param {Message} message 
-    * @param {Array<String>} args 
-    */
-
-    onRequest: async function (client, message, args) {
-
-        if (!args[0]) {
-            message.reply({ content: `Kullanıcı'nın isim ya da yaşını girmelisin.\nÖrn: .k @Mysterious3 Emre 17` }).sil(5)
-            return
-        }
-
-        const member = message.guild.members.cache.get(args[0]) || message.mentions.members.first() || message.member;
-
-        if (!member) {
-            message.reply({ content: `Bir kullanıcı etiketlemelisin ya da ID'sini girmelisin.\nÖrn: .k @Mysterious3 Emre 17` }).sil(5)
-            return
-        }
-        if (!member.manageable) {
-            message.reply({ content: `Böyle birisini kayıt edemiyorum!` })
-            return
-        }
-
-        if (member.id === message.author.id) return message.channel.send({ content: "Kendini kayıt edemezsin." })
-        if (member.id === message.guild.ownerId) return message.channel.send({ content: "Sunucu sahibini kayıt edemezsin." })
-        if (member.roles.highest.position >= message.member.roles.highest.position) return message.channel.send({ content: "Bu kullanıcı senden üst/aynı pozisyonda." })
-
-
-        const Ayarlar = await SetupModel.findOne({ guildID: message.guild.id }).exec()
-        if (!Ayarlar || !Ayarlar.Setup || !Ayarlar.Setup.suspectedRole
-            || !Ayarlar.Setup.registerChannel || !Ayarlar.Setup.registeredRole || !Ayarlar.Setup.registerAuth
-            || !Ayarlar.Setup.unregisterRoles || !Ayarlar.Setup.registerParent || !Ayarlar.Setup.manRoles || !Ayarlar.Setup.womanRoles
-            || !Ayarlar.Setup.nameAgeSystem || !Ayarlar.Setup.changeName || !Ayarlar.Setup.needAge || !Ayarlar.Setup.taggedMode
-            || !Ayarlar.Setup.registerSystem) {
-
-            const owner = message.guild.members.cache.get(message.guild.ownerId)
-            message.reply({ content: `❌ Kayıt sistemi'nin ayarları yapılmadığı için kayıt sistemi çalışmıyor!` }).sil(5)
-            return await owner.send({ content: `❌ ${message.guild.name} Sunucusundaki kayıt sistemi'nin ayarları yapılmadığı için kayıt sistemi çalışmıyor!` }).catch(() => { })
-        }
-
-        if (Ayarlar.Setup.registerSystem === 'Kapali') return message.channel.send({ content: "Kayıt sistemi yöneticiler tarafından \`Deaktif\` Edildiği Icin kimseyi kayıt edemessin! ❌" })
-
-        if (member.roles.cache.has(Ayarlar.Setup.suspectedRole)) return message.channel.send({ content: "Bu kullanıcı şüpheli olduğu için kayıt edemessin! ❌" })
-
-        if (member.roles.cache.has(Ayarlar.Setup.registeredRole)) return message.channel.send({ content: "Bu kullanıcı zaten kayıtlı. ❌" })
-
-        
-        if (Ayarlar.Setup.taggedMode === 'Acik') {
-            if (System.GuildTags.length > 0) {
-                const containsAllTags = System.GuildTags.every((tag) => member.user.globalName.includes(tag));
-                if (!containsAllTags) {
-                    return message.channel.send({ content: "Kayıt etmeye çalıştığınız kullanıcı \`Taglı Değil\` Yöneticiler \`Taglı Alım\` modunu Aktif Ettiği için kayıt edemessin! ❌" })
-                }
-            }
-        }
-        
-        console.log("test")
-        args = args.slice(1).filter(arg => arg.trim() !== "");
-
-        const isimDuzenlenecek = args
-          .filter(arg => isNaN(arg)) // Sayı olmayanları al
-          .map(arg => arg.charAt(0).toUpperCase() + arg.slice(1)) // İlk harfi büyük yap
-          .join(" "); // İsimi birleştir
-        
-        const yaş = args.find(arg => !isNaN(arg)) || undefined; // İlk sayıyı yaş olarak alır, yoksa undefined
-        const isim = isimDuzenlenecek.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
-        const isimYaş = isim + " | " + yaş;
-
-        if(isim && yaş){
-            if (isim.length > 12) return message.channel.send({ content: "Kayıt etmeye çalıştığınız kullanıcı'nın ismi 12 karakterden büyük olamaz." })
-            if (yaş.length > 2) return message.channel.send({ content: "Kayıt etmeye çalıştığınız kullanıcı'nın yaşı 2 karakterden büyük olamaz." })
-            if (parseInt(yaş, 10) <= System.MinAge) return message.channel.send({ content: `Kayıt etmeye çalıştığınız kullanıcı'nın yaşı ${System.MinAge}'dan küçük olamaz.` })
-        }
-
-        if(Ayarlar.Setup.nameAgeSystem === 'Kapali'){
-            if(isim || yaş){
-                return message.channel.send({content:`Sunucu kayıt sistemindeki isim yaş sistemi yöneticiler tarafından \`Deaktif\` Edildi!\nYeni Komut Örn: .k @Mysterious3`})
-            }
-        }
-
-        if(Ayarlar.Setup.nameAgeSystem === 'Kapali' && !yaş && !isim){
-            await member.roles.add(Ayarlar.Setup.registeredRole)
-            const UnRole = Ayarlar.Setup.unregisterRoles.map(id => message.guild.roles.cache.get(id));
-            await member.roles.remove(UnRole)
-
-            await RegisterModel.updateOne(
-                { guildID: message.guild.id, userID: message.author.id },
-                { $inc: { TopReg: 1 } },
-                { upsert: true }
-            );
-            if (Ayarlar.Setup.registerChannel) {
-                const registerchat = message.guild.kanalBul(Ayarlar.Setup.registerChannel)
-                if (registerchat) {
-                    registerchat.send({ content: `<@${member.id}> kullanıcısı aramıza katıldı, herkes selam versin :tada:` }).catch(() => { })
-                }
+        if (interaction.customId === "yapayzeka") {
+            if (KayıtShema.registerSystem == 'Kapalı') {
+                return interaction.reply({
+                    content: `🔒 Kayıtlar yönetici tarafından __geçici bir süreliğine kapatılmıştır.__ Lütfen bu süreçte beklemede kalın. Anlayışla karşıladığınız için teşekkürler!`,
+                })
             }
 
-            return message.channel.send({content:`${member} Adlı Kullanıcı Başarıyla Kayıt Edildi! :tada:`})
-        }
-        
-        
-        if(Ayarlar.Setup.needAge === 'Acik' && Ayarlar.Setup.changeName === 'Acik' && Ayarlar.Setup.changeName === 'Acik'){
-            if (typeof isim !== 'string' || isNaN(Number(yaş))) {
-                message.reply({ content: `Kullanıcının isim ve yaşını doğru şekilde girmelisin.\nÖrn: .k @Mysterious3 Emre 17` }).sil(5);
-                return;
+            if (((!KayıtShema.Setup.manRoles ||
+                !KayıtShema.Setup.manRoles.length ||
+                !KayıtShema.Setup.manRoles.some((r) => interaction.guild.roles.cache.has(r))) &&
+                (!KayıtShema.Setup.womanRoles ||
+                    !KayıtShema.Setup.womanRoles.length ||
+                    !KayıtShema.Setup.womanRoles.some((r) => interaction.guild.roles.cache.has(r)))) ||
+                (KayıtShema.Setup.registeredRole && !interaction.guild.roles.cache.has(KayıtShema.Setup.registeredRole))
+            ) {
+                return interaction.reply('Rol ayarı yapılmamış.');
             }
-        } 
 
-        if(Ayarlar.Setup.needAge !== 'Acik' && yaş){
-            return message.channel.send({content:`Sunucu kayıt sistemindeki yaş zorunluluğu yöneticiler tarafından \`Deaktif\` Edildi!\nYeni Komut Örn: .k @Mysterious3 Emre`})
-        }
-
-
-        const getData = await FetchUser(member.id)
-        const OtherName = getData.data["User"]["Isimler"]
-        
-        const DataRegister = await RegisterModel.findOne({ guildID: message.guild.id, userID: member.id });
-        const embed = new EmbedBuilder()
-            .setAuthor({ name: message.guild.name, iconURL: message.guild.iconURL({ size: 128, extension: 'png' }) })
-            .setFooter({ text: "By mysterious3" })
-            .setColor('Random')
-            .setDescription(`
-**${member} Adlı Kullanıcı'yı Kayıt Etmek Üzeresiniz!**
-
-**__Kullanıcı'nın Sunucumuzdaki Geçmiş Isimleri;__**
-${codeBlock(DataRegister && DataRegister.Names && DataRegister.Names.length > 0 ? (DataRegister.Names.map(x => x).join("\n")) : "Kullanıcı'nın Geçmiş Isimleri Bulunamadı!")}
-**__Kullanıcı Bilgileri:__**
-**Kayıt Eden Yetkili:** ${message.author}
-**Kayıt Edilecek İsim Yaş:** \`${isimYaş}\`
-
-**Kullanıcı'nın Kayıt Olmasını Onaylıyor Musunuz?**`)
-
-        const row = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("man")
-                    .setLabel("Erkek")
-                    .setStyle(ButtonStyle.Secondary)
-                    .setEmoji('🧑'),
-                new ButtonBuilder()
-                    .setCustomId("women")
-                    .setLabel("Kadın")
-                    .setStyle(ButtonStyle.Secondary)
-                    .setEmoji('👩‍🦰'),
-                new ButtonBuilder()
-                    .setCustomId("cancel")
-                    .setLabel("Iptal")
-                    .setStyle(ButtonStyle.Danger)
-                    .setEmoji('❌'),
-            );
-
-        const msg = await message.channel.send({ embeds: [embed], components: [row] })
-
-        const collector = msg.createMessageComponentCollector({
-            time: 1000 * 60 * 10,
-        })
-
-        collector.on('collect', async (i) => {
-            if (i.user.id !== message.author.id) return i.reply({ content: "Bu menüyü sadece komutu yazan kullanabilir.", ephemeral: true });
-            if (i.customId === 'man') {
-                Ayarlar.Setup.manRoles.push(Ayarlar.Setup.registeredRole)
-                const roles = Ayarlar.Setup.manRoles.map(id => message.guild.roles.cache.get(id));
-                await member.roles.add(roles);
-                const UnRole = Ayarlar.Setup.unregisterRoles.map(id => message.guild.roles.cache.get(id));
-                await member.roles.remove(UnRole)
-                await collector.stop('FINISH')
-                if(Ayarlar.Setup.needAge !== 'Acik'){
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: member.id },
-                        {
-                            $push: { Roles: { $each: Ayarlar.Setup.manRoles }, Names: isim },
-                            $set: { Nick: isim, Staff: message.author.id }
-                        },
-                        { upsert: true }
-                    );
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: message.author.id },
-                        { $inc: { TopReg: 1 } },
-                        { upsert: true }
-                    );
-                    if(Ayarlar.Setup.changeName !== 'Kapali') await member.setNickname(isim)
+            if (!KayıtShema || !KayıtShema.Setup || !KayıtShema.Setup.registerParent || !KayıtShema.Setup.registerChannel || !KayıtShema.Setup.registerAuth) {
+                const owner = interaction.guild.members.cache.get(interaction.guild.ownerId)
+                if (owner) {
+                    owner.send({ content: `${interaction.guild.name} Sunucusunda Kayıt sistemi ayarlanmadığı için yeni üyeler kayıt olamıyor! \`.setup\` komutu ile kayıt sistemini aktif etmelisiniz!` }).catch(() => { })
                 }
-                else{
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: member.id },
-                        {
-                            $push: { Roles: { $each: Ayarlar.Setup.manRoles }, Names: isimYaş },
-                            $set: { Nick: isimYaş, Staff: message.author.id }
-                        },
-                        { upsert: true }
-                    );
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: message.author.id },
-                        { $inc: { TopReg: 1 } },
-                        { upsert: true }
-                    );
-                    if(Ayarlar.Setup.changeName !== 'Kapali') await member.setNickname(isimYaş)
-                }
-            
-                if (Ayarlar.Setup.registerChannel) {
-                    const registerchat = message.guild.kanalBul(Ayarlar.Setup.registerChannel)
-                    if (registerchat) {
-                        registerchat.send({ content: `<@${member.id}> kullanıcısı aramıza katıldı, herkes selam versin :tada:` }).catch(() => { })
+                return interaction.reply({ content: "Otomatik Kayıt Sistemi Aktif Edilmediği Icin Kayıt Olamassın!", ephemeral: true })
+            }
+            const getData = await FetchUser(interaction.user.id)
+            if (!getData) return interaction.reply({ content: "Mys API sizinle ilgili bilgileri bulamadı!", ephemeral: true })
+
+            const Name = getData.data["TopName"] ?? undefined;
+            const Age = getData.data["TopAge"] ?? undefined;
+            const Sex = getData.data["TopSex"] ?? undefined;
+
+            if (!Name || !Age || !Sex) return interaction.reply({ content: "Mys API sizinle ilgili bilgileri bulamadı!", ephemeral: true })
+
+            const yaş = !isNaN(Age) || undefined; // İlk sayıyı yaş olarak alır, yoksa undefined
+            const isim = Name.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
+            const isimYaş = isim + ` ${System.DefultNameSembol} ` + yaş;
+
+
+            if (isim && yaş) {
+                if (isim.length > 12) return interaction.channel.send({ content: "Kayıt etmeye çalıştığınız kullanıcı'nın ismi 12 karakterden büyük olamaz." })
+                if (yaş.length > 2) return interaction.channel.send({ content: "Kayıt etmeye çalıştığınız kullanıcı'nın yaşı 2 karakterden büyük olamaz." })
+                if (parseInt(yaş, 10) <= System.MinAge) return interaction.channel.send({ content: `Kayıt etmeye çalıştığınız kullanıcı'nın yaşı ${System.MinAge}'dan küçük olamaz.` })
+            }
+            const member = interaction.guild.members.cache.get(interaction.user.id)
+
+            if (member.roles.cache.has(KayıtShema.Setup.suspectedRole)) return interaction.reply({ content: "Hesabınızı yeni oluşturduğunuz için şüpheli olarak işaretlendiniz! kaydınız tamamlanamıyor! ❌", ephemeral: true })
+            if (member.roles.cache.has(KayıtShema.Setup.registeredRole)) return interaction.reply({ content: "Zaten kayıtlısınız. ❌", ephemeral: true })
+
+            if (KayıtShema.Setup.taggedMode === 'Acik') {
+                if (System.GuildTags.length > 0) {
+                    const containsAllTags = System.GuildTags.every((tag) => member.user.globalName.includes(tag));
+                    if (!containsAllTags) {
+                        return interaction.reply({ content: "Yöneticiler \`Taglı Alım\` modunu Aktif ettiği için, üzerinizde \`Sunucu Tagı Bulunmadığı Icin\` kayıt olamassınız! ❌", ephemeral: true })
                     }
                 }
-                await i.update({ content: `${member} Adlı Kullanıcı Başarıyla Kayıt Edildi! :tada:`, embeds: [], components: [] })
             }
-            else if (i.customId === 'women') {
-                Ayarlar.Setup.womanRoles.push(Ayarlar.Setup.registeredRole)
-                const roles = Ayarlar.Setup.womanRoles.map(id => message.guild.roles.cache.get(id));
-                await member.roles.add(roles);
-                const UnRole = Ayarlar.Setup.unregisterRoles.map(id => message.guild.roles.cache.get(id));
-                await member.roles.remove(UnRole)
 
-                await collector.stop('FINISH')
 
-                if(Ayarlar.Setup.needAge !== 'Acik'){
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: member.id },
-                        {
-                          $push: { Roles: {
-                            Isim: isim,
-                            Yas: yas,
-                            Yetkili: yetkili,
-                            islembilgi: islemismi,
-                            Zaman: Date.now()
-                          }, Names: isim },
-                          $push: { Roles: { $each: Ayarlar.Setup.womanRoles }, Names: isim },
-                          $set: { Nick: isim, Staff: message.author.id }
-                        },
-                        { upsert: true }
-                      );
-                      
-                      await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: message.author.id },
-                        { $inc: { TopReg: 1 } },
-                        { upsert: true }
-                      );
-                      if(Ayarlar.Setup.changeName !== 'Kapali') await member.setNickname(isim)
+            const rolesToCheck = [...(KayıtShema.Setup.manRoles || []), ...(KayıtShema.Setup.womanRoles || []), KayıtShema.Setup.registeredRole];
+
+            if (rolesToCheck.some(role => !member.roles.cache.has(role))) {
+                const DB = await RegisterModel.findOne({ guildID: interaction.guild.id, userID: member.id });
+                if (!DB) {
+                    const lastRole = Sex == 'Erkek' ? [...KayıtShema.Setup.manRoles] : [...KayıtShema.Setup.womanRoles];
+                    const Veri = new RegisterModel({
+                        guildID: interaction.guild.id,
+                        userID: member.id,
+                        Nick: isimYaş,
+                        Names: [{ admin: 'Yapay Zeka', time: Date.now(), name: isimYaş }],
+                        Roles: [{ admin: 'Yapay Zeka', time: Date.now(), roles: [KayıtShema.Setup.registeredRole, lastRole] }],
+                        Staff: 'Yapay Zeka',
+                    });
+                    Veri.save().catch(() => { });
+                    if (KayıtShema.Setup.nameAgeSystem === 'Kapali') {
+                        if (isim || yaş) {
+                            member.roles.remove([]).then(() => { member.roles.add([KayıtShema.Setup.registeredRole,, lastRole]) });
+                        }
+                    }
+                    if (KayıtShema.Setup.needAge === 'Acik') {
+                        if (isim || yaş) {
+                            member.roles.remove([]).then(() => { member.roles.add([KayıtShema.Setup.registeredRole,lastRole]) });
+                            member.setNickname(isimYaş).catch(() => { })
+                        }
+                    }
+                    return interaction.reply({
+                        embeds: [
+                            new EmbedBuilder({
+                                color: Colors.Blue,
+                                description: `${member} (${inlineCode(member.id)})\nIsminiz : ${Name}\nYaşınız: ${Age}\nCinsiyetiniz:${Sex}\nYapay Zeka Tarafından Kayıt Edildi!`,
+                            }),
+                        ],
+                    });
                 }
-                else{
-                    await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: member.id },
-                        {
-                          $push: { Roles: { $each: Ayarlar.Setup.womanRoles }, Names: isimYaş },
-                          $set: { Nick: isimYaş, Staff: message.author.id }
-                        },
-                        { upsert: true }
-                      );
-                      
-                      await RegisterModel.updateOne(
-                        { guildID: message.guild.id, userID: message.author.id },
-                        { $inc: { TopReg: 1 } },
-                        { upsert: true }
-                      );
-                      if(Ayarlar.Setup.changeName !== 'Kapali') await member.setNickname(isimYaş)
+                else {
+                    if (KayıtShema.Setup.nameAgeSystem === 'Kapali') {
+                        member.roles.remove([]).then(() => { member.roles.add([DB.Roles[0].roles]) });
+                    }
+                    if (KayıtShema.Setup.needAge === 'Acik') {
+                        member.roles.remove([]).then(() => { member.roles.add([KayıtShema.Setup.registeredRole]) });
+                        member.setNickname(DB.Nick).catch(() => { })
+                    }
+                    return interaction.reply({
+                        embeds: [
+                            new EmbedBuilder({
+                                color: Colors.Blue,
+                                description: `${member} (${inlineCode(member.id)}) ${DB.Nick} adli kullanıcı Yapay Zeka Tarafından Kayıt Edildi!`,
+                            }),
+                        ],
+                    });
                 }
+            }
+            else {
+                return interaction.reply({ content: "Zaten kayıtlısınız. ❌" })
+            }
+        }
+        else if (interaction.customId === "cagır") {
 
-                
-                if (Ayarlar.Setup.registerChannel) {
-                    const registerchat = message.guild.kanalBul(Ayarlar.Setup.registerChannel)
+            if (!KayıtShema || !KayıtShema.Setup || !KayıtShema.Setup.registerParent || !KayıtShema.Setup.registerChannel || !KayıtShema.Setup.registerAuth) {
+                const owner = interaction.guild.members.cache.get(interaction.guild.ownerId)
+                if (owner) {
+                    await owner.send({ content: `${interaction.guild.name} Sunucusunda Kayıt sistemi ayarlanmadığı için yeni üyeler kayıt olamıyor! \`.setup\` komutu ile kayıt sistemini aktif etmelisiniz!` }).catch(() => { })
+                }
+                return interaction.reply({ content: "Kayıt Sistemi Aktif Edilmediği İçin Kayıtcı Çağıramassın!", ephemeral: true })
+            }
+
+            if (!interaction.member.voice.channelId) {
+                const categoryId = KayıtShema.Setup.registerParent;
+                const kanallar = interaction.guild.channels.cache.filter(channel => channel.parentId === categoryId && channel.type === ChannelType.GuildVoice).map(channel => `<#${channel.id}>`).join(",");
+                if (kanallar.length > 0) {
+                    const veri = kanallar.split(",")
+                    const randomChannelId = veri[Math.floor(Math.random() * veri.length)];
+                    return interaction.reply({ content: `Kayıt Ses Kanallarında Bulunmadığın Icin Kayıtcı Cağıramassın! Lütfen ${randomChannelId} ses kanalına giriniz.`, ephemeral: true })
+                }
+            }
+            if (interaction.member.voice.channelId) {
+                const Ses = interaction.member.voice.guild.kanalBul(interaction.member.voice.channelId)
+                if (Ses.parentId === KayıtShema.Setup.registerParent) {
+                    const registerchat = interaction.guild.kanalBul(KayıtShema.Setup.registerChannel)
                     if (registerchat) {
-                        registerchat.send({ content: `<@${member.id}> kullanıcısı aramıza katıldı, herkes selam versin :tada:` }).catch(() => { })
+                        await interaction.deferUpdate()
+                        registerchat.send({ content: `${interaction.member} => <@&${KayıtShema.Setup.registerAuth}> <#${interaction.member.voice.channelId}> Ses Kanalında Kayıt yetkilisini Çağırıyor...` })
                     }
                 }
-                await i.update({ content: `${member} Adlı Kullanıcı Başarıyla Kayıt Edildi! :tada:`, embeds: [], components: [] })
+                else {
+                    const categoryId = KayıtShema.Setup.registerParent;
+                    const kanallar = interaction.guild.channels.cache.filter(channel => channel.parentId === categoryId && channel.type === ChannelType.GuildVoice).map(channel => `<#${channel.id}>`).join(",");
+                    if (kanallar.length > 0) {
+                        const veri = kanallar.split(",")
+                        const randomChannelId = veri[Math.floor(Math.random() * veri.length)];
+                        return interaction.reply({ content: `Kayıt Ses Kanallarında Bulunmadığın Icin Kayıtcı Cağıramassın! Lütfen ${randomChannelId} ses kanalına giriniz.`, ephemeral: true })
+                    }
+                }
             }
-            else if (i.customId === 'cancel') {
-                await collector.stop('FINISH')
-                await i.update({ content: `${member} Adlı Kullanıcı'nın Kayıt İşlemi İptal Edildi! ❌`, embeds: [], components: [] })
-            }
-        })
+        }
+        else if (interaction.customId === "kayıt") {
+
+            const data = await FetchUser(interaction.user.id).catch((error) => { console.error('Hata:', error) });
+            if (!data) return interaction.reply({ content: "Mys API sizinle ilgili bilgileri bulamadı!", ephemeral: true })
+            if (!data.data["GuildsDisplayNames"]) return interaction.reply({ content: "Mys API sizinle ilgili bilgileri bulamadı!", ephemeral: true })
+
+            const OtherName = data.data["GuildsDisplayNames"].map((x) => x).join("\n");
+            interaction.reply({ embeds: [embed.setDescription(`Diğer Sunuculardaki Isim Kayıtlarınız ;\n\`\`\`${OtherName}\`\`\``)], ephemeral: true })
+        }
     }
 };
 
-/*        await RegisterModel.updateOne(
-            { guildID: message.guild.id, userID: member.id },
-            {
-                $push: {
-                    Roles: {
-                        $each: Ayarlar.Setup.manRoles.map(role => ({
-                            roleID: role.roleID, // Rolün ID'si
-                            roleName: role.roleName, // Rolün adı
-                            // Diğer alanlar (varsa) buraya eklenebilir
-                        }))
-                    }
-                },
-                $set: { Nick: isim, Staff: message.author.id }
-            },
-            { upsert: true }
-        );*/
 async function FetchUser(userId) {
-    const apiKey = 'test'; // API anahtarınızı buraya ekleyin
     const apiUrl = `http://89.150.148.119:10000/user/${userId}`;
     // Axios ile GET isteği gönderme
     const getData = await axios.get(apiUrl, {
-        headers: {
-            'x-api-key': apiKey,
-        },
     }).catch((error) => { console.error('Hata:', error) });
     return getData
 }
+
+module.exports.config = {
+    Event: Events.InteractionCreate,
+    System: true,
+};
