@@ -5,8 +5,10 @@ const { ActionRowBuilder,
     ChannelType,
     StringSelectMenuBuilder,
     RoleSelectMenuBuilder,
-    ChannelSelectMenuBuilder} = require('discord.js');
+    ChannelSelectMenuBuilder } = require('discord.js');
+
 const { SetupModel } = require('../../../../Global/DataBase/Models/GuildModel');
+
 const SETTINGS = require('../../../../Global/Assets/Options')
 module.exports = {
     Isim: "setup",
@@ -33,9 +35,8 @@ module.exports = {
     */
 
     onRequest: async function (client, message) {
-
-        const casRegister = async function () {
-            return new StringSelectMenuBuilder()
+        const cas = new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
                 .setCustomId(`settings`)
                 .setPlaceholder(`Değişilecek ayarı seçiniz!`)
                 .addOptions((await SETTINGS.register(message)).map(x => {
@@ -45,9 +46,16 @@ module.exports = {
                         description: x.description,
                         emoji: x.emoji
                     }
-                }))
-        }
-        const cas = new ActionRowBuilder().addComponents((await casRegister()))
+                }))// "Ayarları Sıfırla" seçeneğini ekleyelim
+                .addOptions([
+                    {
+                        label: "Ayarları Sıfırla",
+                        value: "reset_settings",
+                        description: "Tüm ayarları varsayılan değerlerine sıfırlar.",
+                        emoji: "🔄"
+                    }
+                ])
+        )
         const rowThree = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
@@ -68,12 +76,40 @@ module.exports = {
         collector.on('collect', async (i) => {
             if (i.user.id !== message.author.id) return i.reply({ content: "Bu menüyü sadece komutu yazan kullanabilir.", ephemeral: true });
             if (i.customId === 'back') {
-                i.update({embeds:[Embed],components:[cas]}).catch(() => { });
+                collector.stop('FINISH');
+                i.deferUpdate();
+                await question.delete().catch(() => { });
+                client.komut.find(x => x.Isim === 'setup').onRequest(client, message)
                 return;
             }
-            console.log(i.customId)
+            if(i.isButton()){
+                if (i.customId === 'open' || i.customId === 'close') {
+                    const Bool = i.customId === 'open' ? 'Acik' : 'Kapali'
+                    if (!option[0]) return i.reply({ content: "Bir hata oluştu.", ephemeral: true });
+                    i.reply({
+                        content: `Başarıyla ${option[0].name} adlı ayar ${Bool} şeklinde ayarlandı.`,
+                        ephemeral: true,
+                    });
+                    await SetupModel.updateOne(
+                        { guildID: message.guildId },
+                        { $set: { [`Setup.${option[0].value}`]: `${Bool}` } },
+                        { upsert: true }
+                    ).catch((err) => { console.log(err) });
+                }
+
+            }
+            if (i.values[0] === 'reset_settings') {
+                await SetupModel.updateOne(
+                    { guildID: message.guildId },
+                    { $set: { Setup: {} } },
+                    { upsert: true }
+                );
+                return i.update({ content: "Başarıyla tüm ayarlar sıfırlandı.", components: [], embeds: [] }).catch(() => { });
+            }
+
             if (i.customId === 'settings') {
                 option = (await SETTINGS.register(message)).filter((o) => o.value === i.values[0])
+                console.log(option)
 
                 if (!option) return i.reply({ content: "Bir hata oluştu.", ephemeral: true });
                 if (option[0].type === 'boolean') {
@@ -88,39 +124,31 @@ module.exports = {
                 }).catch(() => { });
 
             }
-            else if (i.customId === 'role' || i.customId === 'channel' || i.customId === 'limit' || i.customId === 'boolean') {
+
+            if (i.customId === 'role' || i.customId === 'channel' || i.customId === 'limit' || i.customId === 'boolean') {
                 if (!option[0]) return i.reply({ content: "Bir hata oluştu.", ephemeral: true });
-                i.reply({
-                    content: `Başarıyla ${option[0].name} adlı ayar ${option[0].isMultiple ? [i.values] : i.values[0]} şeklinde ayarlandı.`,
-                    ephemeral: true,
-                });
+
                 await SetupModel.updateOne(
                     { guildID: message.guildId },
                     { $set: { [`Setup.${option[0].value}`]: option[0].isMultiple ? i.values : i.values[0] } },
                     { upsert: true }
                 );
+                return i.reply({
+                    content: `Başarıyla ${option[0].name} adlı ayar ${option[0].isMultiple ? [i.values] : i.values[0]} şeklinde ayarlandı.`,
+                    ephemeral: true,
+                });
+                
             }
 
-            else if(i.customId === 'tags'){
+            if (i.customId === 'tags') {
                 return i.update({
                     embeds: [Embed.setDescription(`**Aşağıdaki Menü'den** ${option[0].name} taglarınızı görebilirsiniz!`)],
                     components: [MenüOluştur(option), rowThree]
-                }).catch(() => { }); 
-            } 
-            else if (i.customId === 'open' || i.customId === 'close') {
-                const Bool = i.customId === 'open' ? 'Acik' : 'Kapali'
-                if (!option[0]) return i.reply({ content: "Bir hata oluştu.", ephemeral: true });
-                i.reply({
-                    content: `Başarıyla ${option[0].name} adlı ayar ${Bool} şeklinde ayarlandı.`,
-                    ephemeral: true,
-                });
-                await SetupModel.updateOne(
-                    { guildID: message.guildId },
-                    { $set: { [`Setup.${option[0].value}`]: `${Bool}` } },
-                    { upsert: true }
-                ).catch((err) => { console.log(err) });
+                }).catch(() => { });
             }
-        });
+
+            
+        })
         collector.on('end', (_, reason) => {
             if (reason === 'time') {
                 const timeFinished = new ActionRowBuilder()
@@ -179,10 +207,10 @@ module.exports = {
                             placeholder: 'Tag seçiniz..',
                             max_values: 1,
                         })
-                        .addOptions(System.GuildTags.length > 0
-                            ? System.GuildTags.map((l) => ({ label: l, value: l }))
-                            : [{ label: "Tag Bulunamadı!", value: "no_tag" }]
-                          ))
+                            .addOptions(System.GuildTags.length > 0
+                                ? System.GuildTags.map((l) => ({ label: l, value: l }))
+                                : [{ label: "Tag Bulunamadı!", value: "no_tag" }]
+                            ))
 
             }
             else if (option[0].type === 'boolean') {
@@ -206,7 +234,7 @@ module.exports = {
                             .setStyle(ButtonStyle.Danger)
                     );
             }
-            return menü; 
+            return menü;
         }
     }
 }
