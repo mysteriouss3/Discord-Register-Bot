@@ -6,7 +6,7 @@ module.exports = {
 
     MongoURL: "",
     
-    BotsOwners: "638161683717554217",
+    BotsOwners: "",
 
     Aktivites: [
         "Bot Developed By Mysterious",

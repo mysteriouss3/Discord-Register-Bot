@@ -2,7 +2,7 @@
 const { SetupModel } = require('../../Global/DataBase/Models/GuildModel');
 
 async function register(message){
-    var Setup = await SetupModel.findOne({ guildID:message.guild.id });
+    var Setup = (await SetupModel.findOne({ guildID:message.guild.id }))?.Setup;
     const register = [
         {
             name: 'Register Yetkilisi',
