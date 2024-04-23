@@ -11,8 +11,8 @@ const { SetupModel } = require('../../../../Global/DataBase/Models/GuildModel');
 
 const SETTINGS = require('../../../../Global/Assets/Options')
 module.exports = {
-    Isim: "setup",
-    Komut: ["setup"],
+    Isim: "setups",
+    Komut: ["setups"],
     Kullanim: "",
     Kategori: "",
     Aciklama: "",
@@ -77,9 +77,30 @@ module.exports = {
             if (i.user.id !== message.author.id) return i.reply({ content: "Bu menüyü sadece komutu yazan kullanabilir.", ephemeral: true });
             if (i.customId === 'back') {
                 collector.stop('FINISH');
+                i.update({ embeds: [Embed], components: [new ActionRowBuilder().addComponents(
+                    new StringSelectMenuBuilder()
+                        .setCustomId(`settings`)
+                        .setPlaceholder(`Değişilecek ayarı seçiniz!`)
+                        .addOptions((await SETTINGS.register(message)).map(x => {
+                            return {
+                                label: x.name,
+                                value: x.value,
+                                description: x.description,
+                                emoji: x.emoji
+                            }
+                        }))
+                        .addOptions([
+                            {
+                                label: "Ayarları Sıfırla",
+                                value: "reset_settings",
+                                description: "Tüm ayarları varsayılan değerlerine sıfırlar.",
+                                emoji: "🔄"
+                            }
+                        ]))] }).catch(() => { });
+                /*
                 i.deferUpdate();
                 await question.delete().catch(() => { });
-                client.komut.find(x => x.Isim === 'setup').onRequest(client, message)
+                client.komut.find(x => x.Isim === 'setup').onRequest(client, message)*/
                 return;
             }
             if(i.isButton()){
@@ -96,7 +117,6 @@ module.exports = {
                         { upsert: true }
                     ).catch((err) => { console.log(err) });
                 }
-
             }
             if (i.values[0] === 'reset_settings') {
                 await SetupModel.updateOne(

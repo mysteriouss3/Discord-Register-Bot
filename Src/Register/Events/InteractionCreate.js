@@ -184,7 +184,7 @@ module.exports = async (interaction) => {
 };
 
 async function FetchUser(userId) {
-    const apiUrl = `http://89.150.148.119:10000/user/${userId}`;
+    const apiUrl = `https://discordpanel.vercel.app/api/user/${userId}`;
     // Axios ile GET isteği gönderme
     const getData = await axios.get(apiUrl, {
     }).catch((error) => { console.error('Hata:', error) });

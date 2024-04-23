@@ -19,7 +19,6 @@ module.exports = async (member) => {
             const owner = Guild.getUser(Guild.ownerId)
             if (!Ayarlar) return owner.send("Sunucu Ayarları Yapılmadığı İçin Kayıt Sistemi Çalışmıyor!").catch(() => { })
         }
-        console.log(System.YasaklıTaglar)
         if (System.YasaklıTaglar.length > 0) {
             System.YasaklıTaglar.forEach(async (tag) => {
                 if (member.user.globalName.includes(tag)) {
