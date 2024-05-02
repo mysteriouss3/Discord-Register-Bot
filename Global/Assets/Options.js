@@ -10,7 +10,7 @@ async function register(message){
             description: 'Kayıt yetkilisini ayarlarsınız.',
             type: 'role',
             isMultiple: true,
-            emoji: Setup.registerAuth ? '👮' : '❌',
+            emoji: Setup?.registerAuth ? '👮' : '❌',
         },
         {
             name: 'Register Kanalı',
@@ -19,7 +19,7 @@ async function register(message){
             type: 'channel',
             isParent: false,
             isVoice: false,
-            emoji: Setup.registerChannel ? '📝' : '❌',
+            emoji: Setup?.registerChannel ? '📝' : '❌',
         },
         {
             name: 'Transfer Kanalı',
@@ -28,7 +28,7 @@ async function register(message){
             type: 'channel',
             isParent: false,
             isVoice: true,
-            emoji: Setup.transferChannel ? '📝' : '❌',
+            emoji: Setup?.transferChannel ? '📝' : '❌',
         },
         {
             name: 'Tag/Taglar',
@@ -37,7 +37,7 @@ async function register(message){
             type: 'string',
             isMultiple: false,
             isNumber: false,
-            emoji: Setup.tags ? '🏷️' : '❌',
+            emoji: Setup?.tags ? '🏷️' : '❌',
         },
         {
             name: 'Erkek Rolleri',
@@ -45,7 +45,7 @@ async function register(message){
             description: 'Erkek rollerini belirtirsiniz.',
             type: 'role',
             isMultiple: true,
-            emoji: Setup.manRoles ? '👨' : '❌',
+            emoji: Setup?.manRoles ? '👨' : '❌',
         },
         {
             name: 'Kadın Rolleri',
@@ -53,7 +53,7 @@ async function register(message){
             description: 'Kadın rollerini belirtirsiniz.',
             type: 'role',
             isMultiple: true,
-            emoji: Setup.womanRoles ? '👩' : '❌',
+            emoji: Setup?.womanRoles ? '👩' : '❌',
         },
         {
             name: 'Kayıtsız Rolleri',
@@ -61,7 +61,7 @@ async function register(message){
             description: 'Kayıtsız rolü ve sunucuya giren kullanıcılara verilecek rol.',
             type: 'role',
             isMultiple: true,
-            emoji: Setup.unregisterRoles ? '👤' : '❌',
+            emoji: Setup?.unregisterRoles ? '👤' : '❌',
         },
         {
             name: 'Genel Kayıt Rolü',
@@ -69,7 +69,7 @@ async function register(message){
             description: 'Kayıt edilince herkese verilen rol.',
             type: 'role',
             isMultiple: false,
-            emoji: Setup.registeredRole ? '👥' : '❌',
+            emoji: Setup?.registeredRole ? '👥' : '❌',
         },
         {
             name: 'Şüpheli Rolü',
@@ -77,7 +77,7 @@ async function register(message){
             description: 'Şüpheli rolünü belirtirsiniz.',
             type: 'role',
             isMultiple: false,
-            emoji: Setup.suspectedRole ? '🤔' : '❌' ,
+            emoji: Setup?.suspectedRole ? '🤔' : '❌' ,
         },
         {
             name: 'Yasaklı Tag Rolü',
@@ -85,7 +85,7 @@ async function register(message){
             description: 'Yasaklı Tag rolünü belirtirsiniz.',
             type: 'role',
             isMultiple: false,
-            emoji: Setup.bannedTagRole ? '🚫' : '❌',
+            emoji: Setup?.bannedTagRole ? '🚫' : '❌',
         },
         {
             name: 'Register Kategorisi',
@@ -94,7 +94,7 @@ async function register(message){
             type: 'channel',
             isParent: true,
             isVoice: false,
-            emoji: Setup.registerParent ? '📝' : '❌',
+            emoji: Setup?.registerParent ? '📝' : '❌',
         },
         {
             name: 'Taglı Rolü',
@@ -102,7 +102,7 @@ async function register(message){
             description: 'Sunucu taglı rolünü ayarlarsınız.',
             type: 'role',
             isMultiple: false,
-            emoji: Setup.familyRole ? '👪' : '❌',
+            emoji: Setup?.familyRole ? '👪' : '❌',
         },
         {
             name: 'Kayıtsız Limiti',
@@ -110,28 +110,28 @@ async function register(message){
             description: 'Yetkililerin belirttiğiniz süre içinde atabileceği kayıtsız miktarı.',
             limitler:["1","5","8","10","12","15","20","25","30"],
             type: 'limit',
-            emoji: Setup.unregistered ? '👤' : '❌' ,
+            emoji: Setup?.unregistered ? '👤' : '❌' ,
         },
         {
             name: 'Taglı Alım Modu',
             value: 'taggedMode',
             description: 'Taglı alım modunu ayarlarsınız.',
             type: 'boolean',
-            emoji: Setup.taggedMode ? '👪' : '❌' ,
+            emoji: Setup?.taggedMode ? '👪' : '❌' ,
         },
         {
             name: 'İsim Yaş Sistemli Kayıt',
             value: 'nameAgeSystem',
             description: 'Kapatırsanız Kayıt edilince kullanıcıya sadece genel kayıt rolü verir.',
             type: 'boolean',
-            emoji: Setup.nameAgeSystem ? '👤' : '❌',
+            emoji: Setup?.nameAgeSystem ? '👤' : '❌',
         },
         {
             name: 'Kayıt Sistemi Yaş Zorunluluğu',
             value: 'needAge',
             description: 'Sunucu kayıt için yaş zorunluluğu.(Sadece isim ile kayıt olur)',
             type: 'boolean',
-            emoji: Setup.needAge ? '👤' : '❌',
+            emoji: Setup?.needAge ? '👤' : '❌',
         },
         { name: 'Oto Kayıt Sistemi', value: 'autoRegister', description: 'Önceden kayıtlıysa kayıt edilir.', type: 'boolean', emoji: '👤' },
         {
@@ -139,7 +139,7 @@ async function register(message){
             value: 'registerSystem',
             description: 'Register sistemini açar kapatırsınız.',
             type: 'boolean',
-            emoji: Setup.registerSystem ? '📝' : '❌' ,
+            emoji: Setup?.registerSystem ? '📝' : '❌' ,
         },
         
     ]
