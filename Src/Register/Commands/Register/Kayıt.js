@@ -50,7 +50,7 @@ module.exports = {
 
         const Ayarlar = await SetupModel.findOne({ guildID: message.guild.id })
 
-        if (!Ayarlar.Setup) return message.channel.send({ content: `Sunucu ayarları yapılmamış!` })
+        if (!Ayarlar?.Setup) return message.channel.send({ content: `Sunucu ayarları yapılmamış!` })
 
         if (!Ayarlar.Setup.registeredRole) {
             return message.channel.send({ content: `Kayıtlı rolü ayarlanmamış! ❌` })
@@ -69,7 +69,7 @@ module.exports = {
             (!Ayarlar.Setup.womanRoles ||
                 !Setup.womanRoles.length ||
                 !Setup.womanRoles.some((r) => message.guild.roles.cache.has(r)))) ||
-            (Setup.registeredRole && !message.guild.roles.cache.has(guildData.registeredRole))
+            (Setup?.registeredRole && !message.guild.roles.cache.has(guildData.registeredRole))
         ) {
             return message.channel.send('Rol ayarı yapılmamış.');
         }
