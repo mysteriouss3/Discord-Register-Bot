@@ -63,18 +63,18 @@ module.exports = {
             });
         }
 
-        if (((!Ayarlar.Setup.manRoles ||
-            !Ayarlar.Setup.manRoles.length ||
-            !Ayarlar.Setup.manRoles.some((r) => message.guild.roles.cache.has(r))) &&
-            (!Ayarlar.Setup.womanRoles ||
-                !Setup.womanRoles.length ||
-                !Setup.womanRoles.some((r) => message.guild.roles.cache.has(r)))) ||
-            (Setup?.registeredRole && !message.guild.roles.cache.has(guildData.registeredRole))
+        if (((!Ayarlar?.Setup?.manRoles ||
+            !Ayarlar?.Setup?.manRoles.length ||
+            !Ayarlar?.Setup?.manRoles.some((r) => message.guild.roles.cache.has(r))) &&
+            (!Ayarlar?.Setup.womanRoles ||
+                !Ayarlar?.Setup?.womanRoles.length ||
+                !Ayarlar?.Setup?.womanRoles.some((r) => message.guild.roles.cache.has(r)))) ||
+            (Ayarlar?.Setup?.registeredRole && !message.guild.roles.cache.has(Ayarlar?.Setup?.registeredRole))
         ) {
             return message.channel.send('Rol ayarı yapılmamış.');
         }
 
-        if (!Ayarlar.Setup.taggetMode) {
+        if (!Ayarlar?.Setup.taggetMode) {
             return message.channel.send({ content: `Taglı alım modu ayarlanmamış!` })
         }
 
